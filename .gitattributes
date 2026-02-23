@@ -1,0 +1,75 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Force LF for all text-based source files
+*.cs        text eol=lf
+*.csproj    text eol=lf
+*.slnx      text eol=lf
+*.props     text eol=lf
+*.targets   text eol=lf
+
+# Config & data files
+*.json      text eol=lf
+*.xml       text eol=lf
+*.yaml      text eol=lf
+*.yml       text eol=lf
+*.toml      text eol=lf
+*.ini       text eol=lf
+*.config    text eol=lf
+*.env       text eol=lf
+
+# Shell & scripts
+*.sh        text eol=lf
+*.bash      text eol=lf
+*.ps1       text eol=lf
+*.psm1      text eol=lf
+*.psd1      text eol=lf
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+
+# Docs & markup
+*.md        text eol=lf
+*.txt       text eol=lf
+*.rst       text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.scss      text eol=lf
+*.js        text eol=lf
+*.ts        text eol=lf
+
+# Docker
+Dockerfile        text eol=lf
+*.dockerfile      text eol=lf
+docker-compose*   text eol=lf
+
+# Git config files
+.gitattributes    text eol=lf
+.gitignore        text eol=lf
+.editorconfig     text eol=lf
+
+# Binary files — no line ending conversion, no diff
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.svg     binary
+*.woff    binary
+*.woff2   binary
+*.ttf     binary
+*.eot     binary
+*.zip     binary
+*.tar     binary
+*.gz      binary
+*.exe     binary
+*.dll     binary
+*.pdb     binary
+*.nupkg   binary
+*.snupkg  binary
+*.pfx     binary
+
+# Linguist overrides (GitHub language stats)
+# Treat generated or vendored files appropriately
+*.slnx          linguist-generated=true
+**/obj/**       linguist-generated=true
+**/bin/**       linguist-generated=true
