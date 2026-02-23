@@ -1,0 +1,11 @@
+services:
+  # LocalStack emulates AWS SQS locally — no real AWS account needed
+  localstack:
+    image: localstack/localstack:3
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sqs
+      - DEFAULT_REGION=us-east-1
+    volumes:
+      - ./infra/localstack-init:/etc/localstack/init/ready.d

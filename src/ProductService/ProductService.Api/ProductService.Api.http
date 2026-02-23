@@ -1,0 +1,31 @@
+### Product Service — Local Development
+@baseUrl = https://localhost:7167
+@contentType = application/json
+
+### ─────────────────────────────────────────────
+### GET PRODUCT BY ID
+### ─────────────────────────────────────────────
+
+### 1. Wireless Headphones
+GET {{baseUrl}}/api/v1/products/3fa85f64-5717-4562-b3fc-2c963f66afa1
+Accept: {{contentType}}
+
+###
+
+### 2. Mechanical Keyboard
+GET {{baseUrl}}/api/v1/products/4fb96f75-6828-5673-b4fc-3d074f77afa2
+Accept: {{contentType}}
+
+###
+
+### 3. USB-C Hub
+GET {{baseUrl}}/api/v1/products/5fc07a86-7939-6784-c5ad-4e185a88bac3
+Accept: {{contentType}}
+
+###
+
+### 4. Non-existent product (expect 404)
+GET {{baseUrl}}/api/v1/products/00000000-0000-0000-0000-000000000000
+Accept: {{contentType}}
+
+###
