@@ -1,4 +1,4 @@
-﻿namespace ProductService.Application.Ports;
+﻿namespace OrderService.Application.Ports;
 
 /// <summary>
 ///     Outbound port — the application layer uses this to publish events

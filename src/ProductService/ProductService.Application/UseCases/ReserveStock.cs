@@ -1,7 +1,6 @@
 ﻿using ProductService.Application.IntegrationEvents;
 using ProductService.Application.Ports;
 using ProductService.Domain.ProductAggregate.Abstractions;
-using ProductService.Domain.ProductAggregate.Events;
 
 namespace ProductService.Application.UseCases;
 
@@ -12,9 +11,9 @@ public class ReserveStock(
     IDomainEventDispatcher domainEventDispatcher,
     IEventPublisher eventPublisher)
 {
-    private readonly IProductRepository _repository = repository;
     private readonly IDomainEventDispatcher _domainEventDispatcher = domainEventDispatcher;
     private readonly IEventPublisher _eventPublisher = eventPublisher;
+    private readonly IProductRepository _repository = repository;
 
     public async Task ExecuteAsync(ReserveStockCommand command, CancellationToken ct = default)
     {
@@ -28,12 +27,12 @@ public class ReserveStock(
         product.ClearDomainEvents();
 
         await _eventPublisher.PublishAsync(new StockReservedIntegrationEvent(
-            EventId:          Guid.NewGuid(),
-            ProductId:        product.Id,
-            ProductName:      product.Name,
-            OrderId:          command.OrderId,
-            QuantityReserved: command.Quantity,
-            RemainingStock:   product.StockQuantity,
-            OccurredAt:       DateTimeOffset.UtcNow), ct);
+            Guid.NewGuid(),
+            product.Id,
+            product.Name,
+            command.OrderId,
+            command.Quantity,
+            product.StockQuantity,
+            DateTimeOffset.UtcNow), ct);
     }
 }

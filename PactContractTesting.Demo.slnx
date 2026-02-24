@@ -1,20 +1,26 @@
 <Solution>
-	<Folder Name="/infra/" />
+	<Folder Name="/infra/"/>
 	<Folder Name="/infra/localstack-init/">
-		<File Path="infra/localstack-init/01-create-queues.sh" />
+		<File Path="infra/localstack-init/01-create-queues.sh"/>
 	</Folder>
 	<Folder Name="/Solution Items/">
-		<File Path=".editorconfig" />
-		<File Path=".gitattributes" />
-		<File Path=".gitignore" />
-		<File Path="docker-compose.yml" />
-		<File Path="README.md" />
+		<File Path=".editorconfig"/>
+		<File Path=".gitattributes"/>
+		<File Path=".gitignore"/>
+		<File Path="docker-compose.yml"/>
+		<File Path="README.md"/>
 	</Folder>
-	<Folder Name="/src/" />
+	<Folder Name="/src/"/>
+	<Folder Name="/src/OrderService/">
+		<Project Path="src/OrderService/OrderService.Api/OrderService.Api.csproj"/>
+		<Project Path="src/OrderService/OrderService.Application/OrderService.Application.csproj"/>
+		<Project Path="src/OrderService/OrderService.Domain/OrderService.Domain.csproj"/>
+		<Project Path="src/OrderService/OrderService.Infrastructure/OrderService.Infrastructure.csproj"/>
+	</Folder>
 	<Folder Name="/src/ProductService/">
-		<Project Path="src/ProductService/ProductService.Api/ProductService.Api.csproj" />
-		<Project Path="src/ProductService/ProductService.Application/ProductService.Application.csproj" />
-		<Project Path="src/ProductService/ProductService.Domain/ProductService.Domain.csproj" />
-		<Project Path="src/ProductService/ProductService.Infrastructure/ProductService.Infrastructure.csproj" />
+		<Project Path="src/ProductService/ProductService.Api/ProductService.Api.csproj"/>
+		<Project Path="src/ProductService/ProductService.Application/ProductService.Application.csproj"/>
+		<Project Path="src/ProductService/ProductService.Domain/ProductService.Domain.csproj"/>
+		<Project Path="src/ProductService/ProductService.Infrastructure/ProductService.Infrastructure.csproj"/>
 	</Folder>
 </Solution>

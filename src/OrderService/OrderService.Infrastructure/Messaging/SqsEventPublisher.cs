@@ -2,10 +2,10 @@
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Options;
-using ProductService.Application.IntegrationEvents;
-using ProductService.Application.Ports;
+using OrderService.Application.IntegrationEvents;
+using OrderService.Application.Ports;
 
-namespace ProductService.Infrastructure.Messaging;
+namespace OrderService.Infrastructure.Messaging;
 
 public class SqsEventPublisher(IAmazonSQS sqsClient, IOptions<SqsOptions> options) : IEventPublisher
 {
@@ -16,8 +16,9 @@ public class SqsEventPublisher(IAmazonSQS sqsClient, IOptions<SqsOptions> option
     {
         var queueUrl = @event switch
         {
-            StockReservedIntegrationEvent => _options.StockReservedQueueUrl,
-            _ => throw new InvalidOperationException($"No queue configured for event type {typeof(T).Name}")
+            OrderPlacedIntegrationEvent => _options.OrderPlacedQueueUrl,
+            _ => throw new InvalidOperationException(
+                $"No queue configured for event type {typeof(T).Name}")
         };
 
         var body = JsonSerializer.Serialize(@event);
@@ -25,7 +26,7 @@ public class SqsEventPublisher(IAmazonSQS sqsClient, IOptions<SqsOptions> option
         await _sqsClient.SendMessageAsync(
             new SendMessageRequest
             {
-                QueueUrl = _options.OrderPlacedQueueUrl,
+                QueueUrl = queueUrl,
                 MessageBody = body,
                 MessageAttributes = new Dictionary<string, MessageAttributeValue>
                 {

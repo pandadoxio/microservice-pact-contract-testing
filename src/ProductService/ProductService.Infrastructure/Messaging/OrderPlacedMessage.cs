@@ -1,8 +1,8 @@
 ﻿namespace ProductService.Infrastructure.Messaging;
 
 /// <summary>
-/// The message structure ProductService expects to receive from OrderService
-/// via the SQS queue. This shape is the subject of the Pact message contract.
+///     The message structure ProductService expects to receive from OrderService
+///     via the SQS queue.
 /// </summary>
 public class OrderPlacedMessage
 {

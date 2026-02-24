@@ -1,6 +1,5 @@
 ﻿using Amazon.SQS;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using ProductService.Application.Ports;
 using ProductService.Domain.ProductAggregate.Abstractions;
 using ProductService.Infrastructure.Dispatching;

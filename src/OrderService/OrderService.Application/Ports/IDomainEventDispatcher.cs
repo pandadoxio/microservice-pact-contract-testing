@@ -1,4 +1,4 @@
-﻿namespace ProductService.Application.Ports;
+﻿namespace OrderService.Application.Ports;
 
 /// <summary>
 ///     Represents a service that is responsible for dispatching domain events

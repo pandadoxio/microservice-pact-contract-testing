@@ -1,0 +1,86 @@
+### Order Service — Local Development
+@baseUrl = https://localhost:7010
+@contentType = application/json
+
+### ─────────────────────────────────────────────
+### PLACE ORDER
+### ─────────────────────────────────────────────
+
+### 1. Valid order — single line, product in stock
+POST {{baseUrl}}/api/v1/orders
+Content-Type: {{contentType}}
+
+{
+  "customerId": "aabbccdd-0000-0000-0000-000000000001",
+  "items": [
+    {
+      "productId": "3fa85f64-5717-4562-b3fc-2c963f66afa1",
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+### 2. Valid order — multiple lines
+POST {{baseUrl}}/api/v1/orders
+Content-Type: {{contentType}}
+
+{
+  "customerId": "aabbccdd-0000-0000-0000-000000000002",
+  "items": [
+    {
+      "productId": "3fa85f64-5717-4562-b3fc-2c963f66afa1",
+      "quantity": 1
+    },
+    {
+      "productId": "4fb96f75-6828-5673-b4fc-3d074f77afa2",
+      "quantity": 3
+    }
+  ]
+}
+
+###
+
+### 3. Out of stock product (expect 400)
+POST {{baseUrl}}/api/v1/orders
+Content-Type: {{contentType}}
+
+{
+  "customerId": "aabbccdd-0000-0000-0000-000000000003",
+  "items": [
+    {
+      "productId": "5fc07a86-7939-6784-c5ad-4e185a88bac3",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### 4. Non-existent product (expect 400)
+POST {{baseUrl}}/api/v1/orders
+Content-Type: {{contentType}}
+
+{
+  "customerId": "aabbccdd-0000-0000-0000-000000000004",
+  "items": [
+    {
+      "productId": "00000000-0000-0000-0000-000000000000",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### 5. Empty items list (expect 400)
+POST {{baseUrl}}/api/v1/orders
+Content-Type: {{contentType}}
+
+{
+  "customerId": "aabbccdd-0000-0000-0000-000000000005",
+  "items": []
+}
+
+###

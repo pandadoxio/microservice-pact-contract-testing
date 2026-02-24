@@ -10,8 +10,8 @@ public class StockReservedDomainEventHandler(
     ILogger<StockReservedDomainEventHandler> logger)
     : IHandles<StockReservedEvent>
 {
-    private readonly IProductRepository _repository = repository;
     private readonly ILogger<StockReservedDomainEventHandler> _logger = logger;
+    private readonly IProductRepository _repository = repository;
 
     public async Task HandleAsync(StockReservedEvent domainEvent, CancellationToken ct = default)
     {

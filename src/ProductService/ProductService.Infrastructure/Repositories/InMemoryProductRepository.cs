@@ -4,14 +4,32 @@ using ProductService.Domain.ProductAggregate.Abstractions;
 namespace ProductService.Infrastructure.Repositories;
 
 /// <summary>
-/// Simple in-memory repository — sufficient for a demo.
-/// Replace it with an EF Core implementation for production.
+///     Simple in-memory repository — sufficient for a demo.
+///     Replace it with an EF Core implementation for production.
 /// </summary>
 public class InMemoryProductRepository : IProductRepository
 {
     private readonly Dictionary<Guid, Product> _store = new();
 
     public InMemoryProductRepository() => Seed();
+
+    public Task<Product?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => Task.FromResult(_store.TryGetValue(id, out var product) ? product : null);
+
+    public Task<IReadOnlyList<Product>> GetAllAsync(CancellationToken ct = default)
+        => Task.FromResult<IReadOnlyList<Product>>(_store.Values.ToList());
+
+    public Task AddAsync(Product product, CancellationToken ct = default)
+    {
+        _store[product.Id] = product;
+        return Task.CompletedTask;
+    }
+
+    public Task UpdateAsync(Product product, CancellationToken ct = default)
+    {
+        _store[product.Id] = product;
+        return Task.CompletedTask;
+    }
 
     private void Seed()
     {
@@ -34,30 +52,12 @@ public class InMemoryProductRepository : IProductRepository
                 "USB-C Hub",
                 "7-in-1 USB-C hub with 4K HDMI",
                 49.99m,
-                0)   // out of stock deliberately
+                0) // out of stock deliberately
         };
 
         foreach (var product in products)
         {
             _store[product.Id] = product;
         }
-    }
-
-    public Task<Product?> GetByIdAsync(Guid id, CancellationToken ct = default)
-        => Task.FromResult(_store.TryGetValue(id, out var product) ? product : null);
-
-    public Task<IReadOnlyList<Product>> GetAllAsync(CancellationToken ct = default)
-        => Task.FromResult<IReadOnlyList<Product>>(_store.Values.ToList());
-
-    public Task AddAsync(Product product, CancellationToken ct = default)
-    {
-        _store[product.Id] = product;
-        return Task.CompletedTask;
-    }
-
-    public Task UpdateAsync(Product product, CancellationToken ct = default)
-    {
-        _store[product.Id] = product;
-        return Task.CompletedTask;
     }
 }

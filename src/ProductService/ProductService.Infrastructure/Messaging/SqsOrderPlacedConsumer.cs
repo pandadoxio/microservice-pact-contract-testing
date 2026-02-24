@@ -16,10 +16,10 @@ public class SqsOrderPlacedConsumer(
     ILogger<SqsOrderPlacedConsumer> logger)
     : BackgroundService
 {
-    private readonly IAmazonSQS _sqsClient = sqsClient;
-    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
-    private readonly SqsOptions _options = options.Value;
     private readonly ILogger<SqsOrderPlacedConsumer> _logger = logger;
+    private readonly SqsOptions _options = options.Value;
+    private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+    private readonly IAmazonSQS _sqsClient = sqsClient;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -33,7 +33,7 @@ public class SqsOrderPlacedConsumer(
                 {
                     QueueUrl = _options.OrderPlacedQueueUrl,
                     MaxNumberOfMessages = 10,
-                    WaitTimeSeconds = 20  // long polling
+                    WaitTimeSeconds = 20 // long polling
                 }, stoppingToken);
 
                 if (response?.Messages != null)
@@ -57,17 +57,17 @@ public class SqsOrderPlacedConsumer(
     }
 
     /// <summary>
-    /// Handles the full SQS message lifecycle — deserialisation, processing,
-    /// and deletion from the queue on success.
+    ///     Handles the full SQS message lifecycle — deserialisation, processing,
+    ///     and deletion from the queue on success.
     /// </summary>
     public async Task ProcessMessageAsync(Message sqsMessage, CancellationToken ct = default)
     {
         try
         {
             var orderPlaced = JsonSerializer.Deserialize<OrderPlacedMessage>(
-                sqsMessage.Body,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                ?? throw new InvalidOperationException("Failed to deserialise OrderPlacedMessage.");
+                                  sqsMessage.Body,
+                                  new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+                              ?? throw new InvalidOperationException("Failed to deserialise OrderPlacedMessage.");
 
             await HandleOrderPlacedAsync(orderPlaced, ct);
 
@@ -81,8 +81,8 @@ public class SqsOrderPlacedConsumer(
     }
 
     /// <summary>
-    /// Core handler logic, separated from SQS concerns so it can be exercised
-    /// in ProductService's own unit tests without needing a real queue.
+    ///     Core handler logic, separated from SQS concerns so it can be exercised
+    ///     in ProductService's own unit tests without needing a real queue.
     /// </summary>
     public async Task HandleOrderPlacedAsync(OrderPlacedMessage message, CancellationToken ct = default)
     {
