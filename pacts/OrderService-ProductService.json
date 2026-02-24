@@ -1,0 +1,222 @@
+{
+  "consumer": {
+    "name": "OrderService"
+  },
+  "interactions": [
+    {
+      "description": "a request for a product that does not exist",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no product exists with the requested ID"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/v1/products/00000000-0000-0000-0000-000000000000"
+      },
+      "response": {
+        "status": 404
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for a product that exists",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a product with id 3fa85f64-5717-4562-b3fc-2c963f66afa1 exists"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/v1/products/3fa85f64-5717-4562-b3fc-2c963f66afa1"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "description": "Premium noise-cancelling wireless headphones",
+            "id": "3fa85f64-5717-4562-b3fc-2c963f66afa1",
+            "inStock": true,
+            "name": "Wireless Headphones",
+            "price": 149.99,
+            "stockQuantity": 50
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.inStock": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.price": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            },
+            "$.stockQuantity": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json.*"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "a request for a product that is out of stock",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "a product with a known ID exists"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/v1/products/5fc07a86-7939-6784-c5ad-4e185a88bac3"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "description": "7-in-1 USB-C hub with 4K HDMI",
+            "id": "5fc07a86-7939-6784-c5ad-4e185a88bac3",
+            "inStock": false,
+            "name": "USB-C Hub",
+            "price": 49.99,
+            "stockQuantity": 0
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.price": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            },
+            "$.stockQuantity": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json.*"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.27",
+      "models": "1.2.8"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "ProductService"
+  }
+}

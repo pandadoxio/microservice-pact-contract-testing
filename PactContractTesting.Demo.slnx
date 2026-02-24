@@ -4,6 +4,7 @@
 		<File Path="infra/localstack-init/01-create-queues.sh"/>
 	</Folder>
 	<Folder Name="/pacts/">
+		<File Path="pacts/OrderService-ProductService.json"/>
 		<File Path="pacts/ProductService-OrderService.json"/>
 	</Folder>
 	<Folder Name="/Solution Items/">
