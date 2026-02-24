@@ -10,6 +10,7 @@ public class ReserveStock(
     IProductRepository repository,
     IDomainEventDispatcher domainEventDispatcher,
     IEventPublisher eventPublisher)
+    : IReserveStock
 {
     private readonly IDomainEventDispatcher _domainEventDispatcher = domainEventDispatcher;
     private readonly IEventPublisher _eventPublisher = eventPublisher;

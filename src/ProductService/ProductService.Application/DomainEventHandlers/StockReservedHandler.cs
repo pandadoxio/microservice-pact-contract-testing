@@ -5,12 +5,12 @@ using ProductService.Domain.ProductAggregate.Events;
 
 namespace ProductService.Application.DomainEventHandlers;
 
-public class StockReservedDomainEventHandler(
+public class StockReservedHandler(
     IProductRepository repository,
-    ILogger<StockReservedDomainEventHandler> logger)
+    ILogger<StockReservedHandler> logger)
     : IHandles<StockReservedEvent>
 {
-    private readonly ILogger<StockReservedDomainEventHandler> _logger = logger;
+    private readonly ILogger<StockReservedHandler> _logger = logger;
     private readonly IProductRepository _repository = repository;
 
     public async Task HandleAsync(StockReservedEvent domainEvent, CancellationToken ct = default)

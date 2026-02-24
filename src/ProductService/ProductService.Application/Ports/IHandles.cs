@@ -1,6 +1,6 @@
 ﻿namespace ProductService.Application.Ports;
 
-public interface IHandles<in T> where T : class
+public interface IHandles<in TEvent> where TEvent : class
 {
-    Task HandleAsync(T domainEvent, CancellationToken ct = default);
+    Task HandleAsync(TEvent domainEvent, CancellationToken ct = default);
 }

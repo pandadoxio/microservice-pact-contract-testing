@@ -1,18 +1,17 @@
-﻿namespace ProductService.Infrastructure.Messaging;
+﻿namespace ProductService.Application.IntegrationEvents;
 
 /// <summary>
 ///     The message structure ProductService expects to receive from OrderService
-///     via the SQS queue.
 /// </summary>
-public class OrderPlacedMessage
+public class OrderPlacedIntegrationEvent
 {
     public Guid OrderId { get; set; }
     public Guid CustomerId { get; set; }
     public DateTimeOffset PlacedAt { get; set; }
-    public List<OrderLineMessage> Lines { get; set; } = [];
+    public List<OrderLine> Lines { get; set; } = [];
 }
 
-public class OrderLineMessage
+public class OrderLine
 {
     public Guid ProductId { get; set; }
     public int Quantity { get; set; }

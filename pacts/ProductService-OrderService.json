@@ -1,0 +1,189 @@
+{
+  "consumer": {
+    "name": "ProductService"
+  },
+  "interactions": [
+    {
+      "contents": {
+        "content": {
+          "customerId": "aabbccdd-0000-0000-0000-000000000002",
+          "lines": [
+            {
+              "productId": "3fa85f64-5717-4562-b3fc-2c963f66afa1",
+              "quantity": 2,
+              "unitPrice": 149.99
+            }
+          ],
+          "orderId": "aabbccdd-0000-0000-0000-000000000001",
+          "placedAt": "2024-06-01T10:00:00+00:00"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "an OrderPlaced event with a single line item",
+      "matchingRules": {
+        "body": {
+          "$.customerId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.lines": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type",
+                "min": 1
+              }
+            ]
+          },
+          "$.lines[*].productId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.lines[*].quantity": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "integer"
+              }
+            ]
+          },
+          "$.lines[*].unitPrice": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "decimal"
+              }
+            ]
+          },
+          "$.orderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.placedAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "content-type": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    },
+    {
+      "contents": {
+        "content": {
+          "customerId": "aabbccdd-0000-0000-0000-000000000004",
+          "lines": [
+            {
+              "productId": "3fa85f64-5717-4562-b3fc-2c963f66afa1",
+              "quantity": 1,
+              "unitPrice": 89.99
+            }
+          ],
+          "orderId": "aabbccdd-0000-0000-0000-000000000003",
+          "placedAt": "2024-06-01T11:00:00+00:00"
+        },
+        "contentType": "application/json",
+        "encoded": false
+      },
+      "description": "an OrderPlaced event with multiple line items",
+      "matchingRules": {
+        "body": {
+          "$.customerId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.lines": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type",
+                "min": 2
+              }
+            ]
+          },
+          "$.lines[*].productId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.lines[*].quantity": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "integer"
+              }
+            ]
+          },
+          "$.lines[*].unitPrice": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "decimal"
+              }
+            ]
+          },
+          "$.orderId": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.placedAt": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "content-type": "application/json"
+      },
+      "pending": false,
+      "type": "Asynchronous/Messages"
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.27",
+      "models": "1.2.8"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "OrderService"
+  }
+}

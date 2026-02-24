@@ -5,7 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ProductService.Application.UseCases;
+using ProductService.Application.IntegrationEvents;
+using ProductService.Application.Ports;
 
 namespace ProductService.Infrastructure.Messaging;
 
@@ -60,14 +61,14 @@ public class SqsOrderPlacedConsumer(
     ///     Handles the full SQS message lifecycle — deserialisation, processing,
     ///     and deletion from the queue on success.
     /// </summary>
-    public async Task ProcessMessageAsync(Message sqsMessage, CancellationToken ct = default)
+    private async Task ProcessMessageAsync(Message sqsMessage, CancellationToken ct = default)
     {
         try
         {
-            var orderPlaced = JsonSerializer.Deserialize<OrderPlacedMessage>(
+            var orderPlaced = JsonSerializer.Deserialize<OrderPlacedIntegrationEvent>(
                                   sqsMessage.Body,
                                   new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                              ?? throw new InvalidOperationException("Failed to deserialise OrderPlacedMessage.");
+                              ?? throw new InvalidOperationException("Failed to deserialise OrderPlacedIntegrationEvent.");
 
             await HandleOrderPlacedAsync(orderPlaced, ct);
 
@@ -84,18 +85,14 @@ public class SqsOrderPlacedConsumer(
     ///     Core handler logic, separated from SQS concerns so it can be exercised
     ///     in ProductService's own unit tests without needing a real queue.
     /// </summary>
-    public async Task HandleOrderPlacedAsync(OrderPlacedMessage message, CancellationToken ct = default)
+    private async Task HandleOrderPlacedAsync(OrderPlacedIntegrationEvent integrationEvent, CancellationToken ct = default)
     {
         _logger.LogInformation("Processing OrderPlaced {OrderId} with {LineCount} line(s)",
-            message.OrderId, message.Lines.Count);
+            integrationEvent.OrderId, integrationEvent.Lines.Count);
 
         await using var scope = _scopeFactory.CreateAsyncScope();
-        var reserveStock = scope.ServiceProvider.GetRequiredService<ReserveStock>();
+        var handler = scope.ServiceProvider.GetRequiredService<IHandlesIntegrationEvent<OrderPlacedIntegrationEvent>>();
 
-        foreach (var line in message.Lines)
-        {
-            var command = new ReserveStockCommand(line.ProductId, message.OrderId, line.Quantity);
-            await reserveStock.ExecuteAsync(command, ct);
-        }
+        await handler.HandleAsync(integrationEvent, ct);
     }
 }
