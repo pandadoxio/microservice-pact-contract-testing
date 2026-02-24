@@ -11,7 +11,13 @@ public class InMemoryProductRepository : IProductRepository
 {
     private readonly Dictionary<Guid, Product> _store = new();
 
-    public InMemoryProductRepository() => Seed();
+    public InMemoryProductRepository(bool seed = true)
+    {
+        if (seed)
+        {
+            Seed();
+        }
+    }
 
     public Task<Product?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => Task.FromResult(_store.TryGetValue(id, out var product) ? product : null);
@@ -28,6 +34,12 @@ public class InMemoryProductRepository : IProductRepository
     public Task UpdateAsync(Product product, CancellationToken ct = default)
     {
         _store[product.Id] = product;
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveAsync(Guid id, CancellationToken ct = default)
+    {
+        _store.Remove(id);
         return Task.CompletedTask;
     }
 

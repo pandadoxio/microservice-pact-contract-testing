@@ -39,7 +39,8 @@ public class ProductCatalogueHttpConsumerTests
     {
         _pactBuilder
             .UponReceiving("a request for a product that exists")
-            .Given("a product with id 3fa85f64-5717-4562-b3fc-2c963f66afa1 exists")
+            .Given("a product with ID {id} exists",
+                new Dictionary<string, string> { ["id"] = KnownProductId.ToString() })
             .WithRequest(HttpMethod.Get, $"/api/v1/products/{KnownProductId}")
             .WillRespond()
             .WithStatus(HttpStatusCode.OK)
@@ -79,7 +80,8 @@ public class ProductCatalogueHttpConsumerTests
     {
         _pactBuilder
             .UponReceiving("a request for a product that does not exist")
-            .Given("no product exists with the requested ID")
+            .Given("no product exists with ID {id}",
+                new Dictionary<string, string> { ["id"] = UnknownProductId.ToString() })
             .WithRequest(HttpMethod.Get, $"/api/v1/products/{UnknownProductId}")
             .WillRespond()
             .WithStatus(HttpStatusCode.NotFound);
@@ -103,7 +105,8 @@ public class ProductCatalogueHttpConsumerTests
     {
         _pactBuilder
             .UponReceiving("a request for a product that is out of stock")
-            .Given("a product with a known ID exists")
+            .Given("a product with ID {id} is out of stock",
+                new Dictionary<string, string> { ["id"] = OutOfStockProductId.ToString() })
             .WithRequest(HttpMethod.Get, $"/api/v1/products/{OutOfStockProductId}")
             .WillRespond()
             .WithStatus(HttpStatusCode.OK)

@@ -8,7 +8,10 @@
       "pending": false,
       "providerStates": [
         {
-          "name": "no product exists with the requested ID"
+          "name": "no product exists with ID {id}",
+          "params": {
+            "id": "00000000-0000-0000-0000-000000000000"
+          }
         }
       ],
       "request": {
@@ -25,7 +28,10 @@
       "pending": false,
       "providerStates": [
         {
-          "name": "a product with id 3fa85f64-5717-4562-b3fc-2c963f66afa1 exists"
+          "name": "a product with ID {id} exists",
+          "params": {
+            "id": "3fa85f64-5717-4562-b3fc-2c963f66afa1"
+          }
         }
       ],
       "request": {
@@ -122,7 +128,10 @@
       "pending": false,
       "providerStates": [
         {
-          "name": "a product with a known ID exists"
+          "name": "a product with ID {id} is out of stock",
+          "params": {
+            "id": "5fc07a86-7939-6784-c5ad-4e185a88bac3"
+          }
         }
       ],
       "request": {

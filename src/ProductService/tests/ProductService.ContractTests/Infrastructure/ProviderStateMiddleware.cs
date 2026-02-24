@@ -1,87 +1,124 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using ProductService.Domain.ProductAggregate;
 using ProductService.Domain.ProductAggregate.Abstractions;
 
 namespace ProductService.ContractTests.Infrastructure;
-
-public record ProviderStateRequest(string? State, Dictionary<string, string>? Params);
 
 /// <summary>
 ///     Test-only middleware registered by WebApplicationFactory.
 ///     Handles POST /provider-states from the Pact verifier to seed
 ///     the repository before each interaction is replayed.
 /// </summary>
-public class ProviderStateMiddleware(RequestDelegate next)
+public class ProviderStateMiddleware
 {
-    private readonly RequestDelegate _next = next;
+    private static readonly JsonSerializerOptions Options = new() { PropertyNameCaseInsensitive = true };
 
+    private readonly RequestDelegate _next;
+    private readonly IProductRepository _products;
+
+    private readonly IDictionary<string, Func<IDictionary<string, object>, Task>> _providerStates;
+
+    /// <summary>
+    ///     Initialises a new instance of the <see cref="ProviderStateMiddleware" /> class.
+    /// </summary>
+    /// <param name="next">Next request delegate</param>
+    /// <param name="products">Products repository for actioning provider state requests</param>
+    public ProviderStateMiddleware(RequestDelegate next, IProductRepository products)
+    {
+        _next = next;
+        _products = products;
+
+        _providerStates = new Dictionary<string, Func<IDictionary<string, object>, Task>>
+        {
+            ["a product with ID {id} exists"] = EnsureProductExistsAsync,
+            ["no product exists with ID {id}"] = EnsureProductDoesNotExistAsync,
+            ["a product with ID {id} is out of stock"] = EnsureProductIsOutOfStockAsync
+        };
+    }
+
+    /// <summary>
+    ///     Ensure a product exists
+    /// </summary>
+    /// <param name="parameters">Event parameters</param>
+    /// <returns>Awaitable</returns>
+    private async Task EnsureProductExistsAsync(IDictionary<string, object> parameters)
+    {
+        var id = (JsonElement)parameters["id"];
+
+        await _products.AddAsync(Product.Create(
+            id.GetGuid(),
+            "Mechanical Numpad",
+            "Compact standalone numpad with tactile switches",
+            34.99m,
+            15));
+    }
+
+    /// <summary>
+    ///     Ensure a product does not exist
+    /// </summary>
+    /// <param name="parameters">Event parameters</param>
+    /// <returns>Awaitable</returns>
+    private async Task EnsureProductDoesNotExistAsync(IDictionary<string, object> parameters)
+    {
+        var id = (JsonElement)parameters["id"];
+        await _products.RemoveAsync(id.GetGuid());
+    }
+
+    private async Task EnsureProductIsOutOfStockAsync(IDictionary<string, object> parameters)
+    {
+        var id = (JsonElement)parameters["id"];
+
+        await _products.AddAsync(Product.Create(
+            id.GetGuid(),
+            "Ergonomic Wrist Rest",
+            "Memory foam wrist rest for keyboard and mouse",
+            19.99m,
+            0));
+    }
+
+    /// <summary>
+    ///     Handle the request
+    /// </summary>
+    /// <param name="context">Request context</param>
+    /// <returns>Awaitable</returns>
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context.Request.Path != "/provider-states" ||
-            context.Request.Method != HttpMethods.Post)
+        if (!(context.Request.Path.Value?.StartsWith("/provider-states") ?? false))
         {
-            await _next(context);
+            await _next.Invoke(context);
             return;
         }
 
-        var body = await new StreamReader(context.Request.Body).ReadToEndAsync();
-
-        var providerState = JsonSerializer.Deserialize<ProviderStateRequest>(
-            body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-        if (providerState?.State is not null)
-        {
-            var repository = context.RequestServices
-                .GetRequiredService<IProductRepository>();
-
-            await SetupStateAsync(providerState.State, providerState.Params, repository);
-        }
-
         context.Response.StatusCode = StatusCodes.Status200OK;
-    }
 
-    private static async Task SetupStateAsync(
-        string state,
-        Dictionary<string, string>? parameters,
-        IProductRepository repository)
-    {
-        switch (state)
+        if (context.Request.Method == HttpMethod.Post.ToString())
         {
-            case "a product with id 3fa85f64-5717-4562-b3fc-2c963f66afa1 exists":
+            string jsonRequestBody;
+
+            using (var reader = new StreamReader(context.Request.Body, Encoding.UTF8))
             {
-                var product = Product.Create(
-                    Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa1"),
-                    "Wireless Headphones",
-                    "Premium noise-cancelling wireless headphones",
-                    149.99m,
-                    50);
-                await repository.AddAsync(product);
-                break;
+                jsonRequestBody = await reader.ReadToEndAsync();
             }
 
-            case "a product with a known ID exists":
+            try
             {
-                var id = parameters is not null &&
-                         parameters.TryGetValue("id", out var idStr)
-                    ? Guid.Parse(idStr)
-                    : Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa1");
+                var providerState = JsonSerializer.Deserialize<ProviderState>(jsonRequestBody, Options);
 
-                var product = Product.Create(
-                    id,
-                    "Wireless Headphones",
-                    "Premium noise-cancelling wireless headphones",
-                    149.99m,
-                    50);
-                await repository.AddAsync(product);
-                break;
+                if (!string.IsNullOrEmpty(providerState?.State))
+                {
+                    await _providerStates[providerState.State].Invoke(providerState.Params);
+                }
             }
-
-            case "no product exists with the requested ID":
-                // Empty repository is the default — nothing to seed
-                break;
+            catch (Exception e)
+            {
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await context.Response.WriteAsync("Failed to deserialise JSON provider state body:");
+                await context.Response.WriteAsync(jsonRequestBody);
+                await context.Response.WriteAsync(string.Empty);
+                await context.Response.WriteAsync(e.ToString());
+            }
         }
     }
 }

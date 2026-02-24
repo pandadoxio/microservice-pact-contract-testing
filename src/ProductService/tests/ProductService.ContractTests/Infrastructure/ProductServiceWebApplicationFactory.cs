@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Amazon.SQS;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using ProductService.Application.Ports;
 using ProductService.Domain.ProductAggregate.Abstractions;
+using ProductService.Infrastructure.Messaging;
 using ProductService.Infrastructure.Repositories;
 
 namespace ProductService.ContractTests.Infrastructure;
@@ -15,32 +17,45 @@ namespace ProductService.ContractTests.Infrastructure;
 public class ProductServiceWebApplicationFactory : WebApplicationFactory<Program>
 {
     private const string TestServerUrl = "http://localhost:9222";
-
     public Uri ServerUri => new(TestServerUrl);
+    public Uri ProviderStatesUri => new(ServerUri, "/provider-states");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Bind to a real Kestrel port so Pact verifier can reach it over HTTP
-        builder.UseUrls(TestServerUrl);
+        // UseKestrel tells WebApplicationFactory to use a real Kestrel server
+        // instead of the in-memory TestServer
+        UseKestrel(options => options.ListenLocalhost(9222));
 
         builder.ConfigureServices(services =>
         {
-            // Replace the repository with a clean empty singleton instance.
-            // Singleton ensures the state seeded by ProviderStateMiddleware
-            // is visible to the endpoint handlers within the same request cycle.
-            var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IProductRepository));
-
-            if (descriptor is not null)
+            var hostedServiceDescriptor =
+                services.SingleOrDefault(d => d.ImplementationType == typeof(SqsOrderPlacedConsumer));
+            if (hostedServiceDescriptor is not null)
             {
-                services.Remove(descriptor);
+                services.Remove(hostedServiceDescriptor);
             }
 
-            services.AddSingleton<IProductRepository, InMemoryProductRepository>();
-        });
+            var publisherDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEventPublisher));
+            if (publisherDescriptor is not null)
+            {
+                services.Remove(publisherDescriptor);
+            }
 
-        builder.Configure(app =>
-        {
-            app.UseMiddleware<ProviderStateMiddleware>();
+            var sqsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IAmazonSQS));
+            if (sqsDescriptor is not null)
+            {
+                services.Remove(sqsDescriptor);
+            }
+
+            var repositoryDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IProductRepository));
+            if (repositoryDescriptor is not null)
+            {
+                services.Remove(repositoryDescriptor);
+            }
+
+            services.AddSingleton<IProductRepository>(new InMemoryProductRepository(false));
+            services.AddSingleton<IEventPublisher, NoOpEventPublisher>();
+            services.AddSingleton<IStartupFilter, ProviderStateStartupFilter>();
         });
     }
 }
