@@ -1,6 +1,4 @@
-﻿using ProductService.Application.IntegrationEvents;
-
-namespace ProductService.Application.Ports;
+﻿namespace ProductService.Application.Ports;
 
 public interface IHandlesIntegrationEvent<in TEvent> where TEvent : class
 {

@@ -9,6 +9,11 @@ namespace OrderService.Infrastructure.Messaging;
 
 public class SqsEventPublisher(IAmazonSQS sqsClient, IOptions<SqsOptions> options) : IEventPublisher
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly SqsOptions _options = options.Value;
     private readonly IAmazonSQS _sqsClient = sqsClient;
 
@@ -21,7 +26,7 @@ public class SqsEventPublisher(IAmazonSQS sqsClient, IOptions<SqsOptions> option
                 $"No queue configured for event type {typeof(T).Name}")
         };
 
-        var body = JsonSerializer.Serialize(@event);
+        var body = JsonSerializer.Serialize(@event, SerializerOptions);
 
         await _sqsClient.SendMessageAsync(
             new SendMessageRequest

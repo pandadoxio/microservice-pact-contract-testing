@@ -4,7 +4,8 @@ using ProductService.Application.UseCases;
 
 namespace ProductService.Application.IntegrationEventHandlers;
 
-public class OrderPlacedIntegrationHandler(IReserveStock reserveStock) : IHandlesIntegrationEvent<OrderPlacedIntegrationEvent>
+public class OrderPlacedIntegrationHandler(IReserveStock reserveStock)
+    : IHandlesIntegrationEvent<OrderPlacedIntegrationEvent>
 {
     private readonly IReserveStock _reserveStock = reserveStock;
 

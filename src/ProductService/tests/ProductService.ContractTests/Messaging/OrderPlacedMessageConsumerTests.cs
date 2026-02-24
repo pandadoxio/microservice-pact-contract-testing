@@ -32,7 +32,6 @@ public class OrderPlacedMessageConsumerTests
     public async Task OrderPlaced_WithSingleLine_HandlerProcessesSuccessfully() =>
         await _pactBuilder
             .ExpectsToReceive("an OrderPlaced event with a single line item")
-            .WithMetadata("content-type", "application/json")
             .WithJsonContent(new
             {
                 orderId = Match.Type(Guid.Parse("aabbccdd-0000-0000-0000-000000000001")),
@@ -68,7 +67,6 @@ public class OrderPlacedMessageConsumerTests
     public async Task OrderPlaced_WithMultipleLines_HandlerProcessesAllLines() =>
         await _pactBuilder
             .ExpectsToReceive("an OrderPlaced event with multiple line items")
-            .WithMetadata("content-type", "application/json")
             .WithJsonContent(new
             {
                 orderId = Match.Type(Guid.Parse("aabbccdd-0000-0000-0000-000000000003")),

@@ -68,7 +68,8 @@ public class SqsOrderPlacedConsumer(
             var orderPlaced = JsonSerializer.Deserialize<OrderPlacedIntegrationEvent>(
                                   sqsMessage.Body,
                                   new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                              ?? throw new InvalidOperationException("Failed to deserialise OrderPlacedIntegrationEvent.");
+                              ?? throw new InvalidOperationException(
+                                  "Failed to deserialise OrderPlacedIntegrationEvent.");
 
             await HandleOrderPlacedAsync(orderPlaced, ct);
 
@@ -85,7 +86,8 @@ public class SqsOrderPlacedConsumer(
     ///     Core handler logic, separated from SQS concerns so it can be exercised
     ///     in ProductService's own unit tests without needing a real queue.
     /// </summary>
-    private async Task HandleOrderPlacedAsync(OrderPlacedIntegrationEvent integrationEvent, CancellationToken ct = default)
+    private async Task HandleOrderPlacedAsync(OrderPlacedIntegrationEvent integrationEvent,
+        CancellationToken ct = default)
     {
         _logger.LogInformation("Processing OrderPlaced {OrderId} with {LineCount} line(s)",
             integrationEvent.OrderId, integrationEvent.Lines.Count);

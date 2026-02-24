@@ -82,9 +82,6 @@
           }
         }
       },
-      "metadata": {
-        "content-type": "application/json"
-      },
       "pending": false,
       "type": "Asynchronous/Messages"
     },
@@ -166,9 +163,6 @@
             ]
           }
         }
-      },
-      "metadata": {
-        "content-type": "application/json"
       },
       "pending": false,
       "type": "Asynchronous/Messages"
