@@ -3,9 +3,6 @@
 A demonstration of **consumer-driven contract testing** using [PactNet](https://github.com/pact-foundation/pact-net)
 across two .NET 10 microservices built with **Clean Architecture** and **Domain-Driven Design**.
 
-> **Note:** This commit contains the ProductService and OrderService implementations. The Pact contract tests will
-> be added in a subsequent commit.
-
 ---
 
 ## What This Repository Contains
@@ -20,6 +17,11 @@ Each service follows **Clean Architecture** with strict dependency rules across 
 Infrastructure, and Api — and **Domain-Driven Design** principles including aggregates, domain events, and integration
 events.
 
+Contract tests are implemented using **PactNet v5** and cover both communication channels:
+
+- **HTTP contracts** — define and verify the shape of REST API requests and responses
+- **Message contracts** — define and verify the shape of SQS messages
+
 ---
 
 ## Project Structure
@@ -31,13 +33,24 @@ microservice-pact-contract-testing/
 │   │   ├── ProductService.Domain/          Pure domain — entities, value objects, domain events
 │   │   ├── ProductService.Application/     Use cases, DTOs, ports, integration events, domain event handlers
 │   │   ├── ProductService.Infrastructure/  SQS consumer/publisher, in-memory repository, DI registration
-│   │   └── ProductService.Api/             Minimal API endpoints, OpenAPI/Scalar, DI wiring
+│   │   ├── ProductService.Api/             Minimal API endpoints, OpenAPI/Scalar, DI wiring
+│   │   └── tests/
+│   │       └── ProductService.ContractTests/
+│   │           ├── Http/                   HTTP provider verification against OrderService-ProductService.json
+│   │           ├── Messaging/              Message consumer tests — generates ProductService-OrderService.json
+│   │           └── Infrastructure/         ProviderStateMiddleware, WebApplicationFactory
 │   │
 │   └── OrderService/
 │       ├── OrderService.Domain/            Pure domain — Order aggregate, value objects, domain events
 │       ├── OrderService.Application/       Use cases, DTOs, ports, integration events, domain event handlers
 │       ├── OrderService.Infrastructure/    SQS publisher, HTTP client adapter, DI registration
-│       └── OrderService.Api/               Minimal API endpoints, OpenAPI/Scalar, DI wiring
+│       ├── OrderService.Api/               Minimal API endpoints, OpenAPI/Scalar, DI wiring
+│       └── tests/
+│           └── OrderService.ContractTests/
+│               ├── Http/                   HTTP consumer tests — generates OrderService-ProductService.json
+│               └── Messaging/              Message provider verification against ProductService-OrderService.json
+│
+├── pacts/                                  Generated pact files shared between test projects
 │
 ├── infra/
 │   └── localstack-init/
@@ -189,6 +202,22 @@ real AWS.
 }
 ```
 
+### OrderService — appsettings.json
+
+The base URL for ProductService is configured here rather than in the Development override, so it applies across all
+environments:
+
+```json
+{
+  "ProductService": {
+    "BaseUrl": "https://localhost:7167"
+  }
+}
+```
+
+> Update `ProductService.BaseUrl` if ProductService is running on a different port — check the `Now listening on` line
+> in ProductService's console output to confirm the actual port.
+
 ---
 
 ## Testing the Endpoints
@@ -293,6 +322,97 @@ aws sqs send-message \
 
 ---
 
+## Contract Tests
+
+Contract tests verify the communication contracts between ProductService and OrderService without requiring both
+services to be running simultaneously. They use [PactNet v5](https://github.com/pact-foundation/pact-net) to generate
+and verify pact files.
+
+### How the contracts are structured
+
+Each service is both a consumer and a provider depending on the communication channel:
+
+| Service        | Role              | Channel  | Pact file generated                  |
+|----------------|-------------------|----------|--------------------------------------|
+| OrderService   | HTTP Consumer     | REST API | `pacts/OrderService-ProductService.json` |
+| ProductService | HTTP Provider     | REST API | Reads `OrderService-ProductService.json` |
+| ProductService | Message Consumer  | SQS      | `pacts/ProductService-OrderService.json` |
+| OrderService   | Message Provider  | SQS      | Reads `ProductService-OrderService.json` |
+
+The pact files in the `pacts/` directory act as the shared contract — consumer tests generate them and provider tests
+verify against them. The two test projects therefore have a dependency on each other's output:
+
+```
+Run order:
+  1. OrderService.ContractTests   →  generates  pacts/OrderService-ProductService.json
+  2. ProductService.ContractTests →  generates  pacts/ProductService-OrderService.json
+                                  →  verifies   pacts/OrderService-ProductService.json
+
+  (Both can be run independently but provider tests require the consumer's pact file to exist first)
+```
+
+### Running the contract tests
+
+From the solution root:
+
+```bash
+# Step 1 — run only OrderService consumer tests
+# Generates: pacts/OrderService-ProductService.json
+dotnet test src/OrderService/tests/OrderService.ContractTests \
+  --filter "FullyQualifiedName~Http"
+
+# Step 2 — run all ProductService tests
+# Generates: pacts/ProductService-OrderService.json
+# Verifies:  pacts/OrderService-ProductService.json
+dotnet test src/ProductService/tests/ProductService.ContractTests
+
+# Step 3 — run all OrderService tests
+# Verifies:  pacts/ProductService-OrderService.json
+dotnet test src/OrderService/tests/OrderService.ContractTests
+```
+
+Or run selected tests from within the IDE.
+
+> **Note:** The contract tests do not require LocalStack or either service to be running. They are fully self-contained
+> — the HTTP provider test boots ProductService using `WebApplicationFactory`.
+
+### What each test project contains
+
+**ProductService.ContractTests**
+
+- `Messaging/OrderPlacedMessageConsumerTests` — defines the shape of the `OrderPlaced` SQS message that ProductService
+  needs to receive. Exercises the real message handler against a Pact-generated message. Generates
+  `ProductService-OrderService.json`.
+- `Http/ProductServiceHttpProviderTests` — boots ProductService on a real Kestrel port using `WebApplicationFactory`,
+  replays every HTTP interaction from `OrderService-ProductService.json` against the real API, and verifies the
+  responses match.
+
+**OrderService.ContractTests**
+
+- `Http/ProductCatalogueHttpConsumerTests` — defines the HTTP interactions OrderService needs from ProductService's
+  REST API. Exercises the real `ProductCatalogueHttpClient` adapter against Pact's mock server. Generates
+  `OrderService-ProductService.json`.
+- `Messaging/OrderPlacedMessageProviderTests` — verifies that the `OrderPlacedIntegrationEvent` OrderService actually
+  produces matches the shape ProductService declared it needs in `ProductService-OrderService.json`.
+
+### Provider state middleware
+
+The HTTP provider verification test uses `ProviderStateMiddleware` to seed the in-memory repository with specific data
+before each interaction is replayed. This middleware lives entirely in the test project — the API project has no
+knowledge of it.
+
+The middleware is registered via `IStartupFilter` so it is injected at the start of the pipeline without replacing the
+pipeline configured in `Program.cs`. Before each interaction the Pact verifier sends a `POST /provider-states` request
+with the state name and any parameters, and the middleware seeds the repository accordingly:
+
+| Provider state                     | Data seeded                           |
+|------------------------------------|---------------------------------------|
+| `a product with ID {id} exists`    | Product with the given ID, in stock   |
+| `a product with ID {id} is out of stock` | Product with the given ID, zero stock |
+| `no product exists with ID {id}`   | No Product wih the given ID           |
+
+---
+
 ## Event Flows
 
 ### OrderService — placing an order
@@ -322,10 +442,14 @@ When an `OrderPlaced` message arrives on the SQS queue, ProductService:
 If OrderService cannot reach ProductService, check that:
 
 - ProductService is running and the console shows `Now listening on`
-- `ProductService.BaseUrl` in OrderService's `appsettings.json` matches the port ProductService is
-  listening on
+- `ProductService.BaseUrl` in `OrderService.Api/appsettings.json` matches the port ProductService is listening on
 - If running via a Compound Run Configuration in Rider and one service becomes unreachable, try restarting both
   services together
+
+### Contract test pact file not found
+
+Provider tests require the consumer's pact file to exist before they can run. If you see a message like
+`Pact file not found at pacts/OrderService-ProductService.json`, run the consumer tests first.
 
 ### SQS queues not created on startup
 
